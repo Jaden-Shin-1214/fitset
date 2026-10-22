@@ -674,24 +674,27 @@ function components(c){const s=Math.min(1,400/Math.max(c.width,c.height)),w=Math
   for(let p0=0;p0<w*h;p0++){if(lab[p0]||d[p0*4+3]<64)continue;id++;let qh=0,qt=0,n=0,sx=0,sy=0,x0=w,y0=h,x1=0,y1=0;q[qt++]=p0;lab[p0]=id;
     while(qh<qt){const p=q[qh++],px=p%w,py=(p-px)/w;n++;sx+=px;sy+=py;if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;
       for(const nb of[px>0?p-1:-1,px<w-1?p+1:-1,py>0?p-w:-1,py<h-1?p+w:-1])if(nb>=0&&!lab[nb]&&d[nb*4+3]>=64){lab[nb]=id;q[qt++]=nb}}
-    if(n>w*h*.0015)comps.push({id,cx:sx/n/s,cy:sy/n/s,x0:x0/s,y0:y0/s,x1:(x1+1)/s,y1:(y1+1)/s})}
+    if(n>w*h*.0015)comps.push({id,n,cx:sx/n/s,cy:sy/n/s,x0:x0/s,y0:y0/s,x1:(x1+1)/s,y1:(y1+1)/s})}
   return{lab,w,h,s,comps}}
-// 착장 사진 → (1) 이미지 모델로 플랫레이 생성 → (2) 분석 모델로 옷별 상자·종류 → (3) 덩어리 단위로 누끼
-async function extract(img){const oa=S.prov==="openai";
-  const flat=await genImage(`Create a flat-lay product photo of every clothing item and accessory the person wears (outerwear, top, bottom, dress, shoes, hat, belt, bag, jewelry). Lay each item flat, front view, fully visible, well separated with generous empty space between items, never overlapping. ${oa?"Transparent background.":"Solid pure green #00FF00 background."} No person, no mannequin, no shadows, no text.`,[imgToDataURL(img)],{size:"1536x1024",transparent:true});
-  const fim=await loadImg(flat),keyed=chromaKey(fim),W=keyed.width,H=keyed.height,cc=components(keyed);
-  const txt=await analyze('Detect each garment or accessory in this flat-lay image. Return JSON {"items":[{"label": short English name, "name_ko": short Korean product name, "category": one of "outer","top","bottom","dress","shoes","hat","bag","acc","jewelry", or another short lowercase English noun such as "ring" or "scarf", "box_2d": [ymin, xmin, ymax, xmax] normalized to 0-1000}]}. A pair of shoes is one item.',[flat]);
-  const j=JSON.parse(String(txt).replace(/^\s*```(json)?/,"").replace(/```\s*$/,"").trim()),boxes=Array.isArray(j)?j:(j.items||[]),out=[],used=new Set();
-  boxes.forEach((b,i)=>{if(!b.box_2d)return;b.category=ensureCat(b.category);let[y0,x0,y1,x1]=b.box_2d.map((v,k)=>v/1000*(k%2?W:H));const mx=(x1-x0)*.05,my=(y1-y0)*.05;
-    const grp=cc.comps.filter(c=>!used.has(c.id)&&c.cx>x0-mx&&c.cx<x1+mx&&c.cy>y0-my&&c.cy<y1+my);
-    if(grp.length){grp.forEach(c=>used.add(c.id));x0=Math.min(...grp.map(c=>c.x0));y0=Math.min(...grp.map(c=>c.y0));x1=Math.max(...grp.map(c=>c.x1));y1=Math.max(...grp.map(c=>c.y1))}
-    x0=Math.max(0,x0-4);y0=Math.max(0,y0-4);x1=Math.min(W,x1+4);y1=Math.min(H,y1+4);const c=canvasOf(x1-x0,y1-y0),cx=c.getContext("2d");cx.drawImage(keyed,x0,y0,c.width,c.height,0,0,c.width,c.height);
-    if(grp.length){const ids=new Set(grp.map(g=>g.id)),id=cx.getImageData(0,0,c.width,c.height),d=id.data;
-      for(let yy=0;yy<c.height;yy++)for(let xx=0;xx<c.width;xx++){const lx=Math.min(cc.w-1,Math.floor((x0+xx)*cc.s)),ly=Math.min(cc.h-1,Math.floor((y0+yy)*cc.s)),l=cc.lab[ly*cc.w+lx];if(l&&!ids.has(l))d[(yy*c.width+xx)*4+3]=0}
-      cx.putImageData(id,0,0)}
-    const t=trim(c);const g={id:"t"+Date.now().toString(36)+i,category:b.category,name:String(b.name_ko||b.label).slice(0,20),en:String(b.label),src:t.toDataURL("image/png"),w:t.width,h:t.height,color:dominant(t),user:true};
-    S.lib.push(g);out.push(g)});
-  await Promise.all(out.map(g=>loadImg(g.src)));return out}
+// 생성된 상품 사진에서 주된 덩어리만 남긴다 (신발 한 켤레처럼 비슷한 크기의 덩어리는 함께 유지). 깨진 결과면 null
+function keepMain(c){const cc=components(c);if(!cc.comps.length)return null;const max=Math.max(...cc.comps.map(o=>o.n)),keep=cc.comps.filter(o=>o.n>=max*.15),ids=new Set(keep.map(o=>o.id));
+  const cover=keep.reduce((a,o)=>a+o.n,0)/(cc.w*cc.h),x0=Math.min(...keep.map(o=>o.x0)),x1=Math.max(...keep.map(o=>o.x1)),y0=Math.min(...keep.map(o=>o.y0)),y1=Math.max(...keep.map(o=>o.y1)),ar=(x1-x0)/(y1-y0);
+  if(cover<.01||cover>.9||ar<.12||ar>8)return null;
+  const x=c.getContext("2d"),id=x.getImageData(0,0,c.width,c.height),d=id.data;
+  for(let yy=0;yy<c.height;yy++)for(let xx=0;xx<c.width;xx++){const l=cc.lab[Math.min(cc.h-1,Math.floor(yy*cc.s))*cc.w+Math.min(cc.w-1,Math.floor(xx*cc.s))];if(!ids.has(l))d[(yy*c.width+xx)*4+3]=0}
+  x.putImageData(id,0,0);return c}
+// 착장 사진 → (1) 분석 모델로 입은 옷 목록만 받기 → (2) 옷마다 상품 사진을 한 장씩 생성 → (3) 배경 제거 · 검사 후 옷장과 보드에 추가
+async function extract(img,onItem=()=>{},onList=()=>{}){const oa=S.prov==="openai",ref=imgToDataURL(img,1024);
+  const txt=await analyze('List every clothing item and accessory the person in this photo is wearing. Ignore objects they hold, the background and any text. Return JSON {"items":[{"label": short English name, "name_ko": short Korean product name, "category": one of "outer","top","bottom","dress","shoes","hat","bag","acc","jewelry", or another short lowercase English noun such as "ring" or "scarf", "description": one English sentence on the color, material, pattern and visible details}]}. A pair of shoes is one item. At most 8 items.',[ref]);
+  const j=JSON.parse(String(txt).replace(/^\s*```(json)?/,"").replace(/```\s*$/,"").trim()),list=(Array.isArray(j)?j:(j.items||[])).filter(b=>b&&b.label).slice(0,8);
+  onList(list.length);const out=[];let done=0,err=null,k=0;
+  const one=async(b,i)=>{try{
+      const u=await genImage(`Using the reference photo, recreate ONLY this item worn by the person: ${b.description||b.label}. Show it alone as a clean e-commerce product photo: front view, centered, fully visible with margin, laid flat or on an invisible mannequin, with exactly the same color, material, pattern, logos and details as in the photo. ${oa?"Transparent background.":"Solid pure green #00FF00 background."} No person, no body parts, no other garments, no props, no text, no shadow.`,[ref],{size:"1024x1024",transparent:true});
+      const c=keepMain(chromaKey(await loadImg(u)));if(!c){err=err||new Error("생성된 이미지에서 옷을 깔끔하게 분리하지 못했어요.");return}
+      const t=trim(c),g={id:"t"+Date.now().toString(36)+i,category:ensureCat(b.category),name:String(b.name_ko||b.label).slice(0,20),en:String(b.label),src:t.toDataURL("image/png"),w:t.width,h:t.height,color:dominant(t),user:true};
+      await loadImg(g.src);S.lib.push(g);out.push(g);done++;onItem(g,done,list.length)}catch(e){err=e}};
+  await Promise.all([0,1].map(async()=>{while(k<list.length){const i=k++;await one(list[i],i)}}));
+  if(!out.length&&err)throw err;if(!list.length)throw new Error("사진에서 옷을 찾지 못했어요. 전신이 잘 보이는 사진으로 다시 시도해 주세요.");return out}
 // 빼 온 옷들을 샘플과 같은 배치의 코디 보드 이미지로 합성하고, 각 옷의 상자 좌표를 기록한다
 async function composeBoard(items){const W=1114,H=702,c=canvasOf(W,H),x=c.getContext("2d"),rec=[];x.fillStyle="#1a1d21";x.fillRect(0,0,W,H);
   const L=layout(items,W,H);for(const g of items){const r=L[g.id];if(!r)continue;const im=await loadImg(g.src);
@@ -709,12 +712,14 @@ async function runSampleOutfit(tile){const had=S.boards.some(b=>b.id==="sample")
     if(bt&&!reduce)bt.animate([{opacity:0,transform:"scale(.88)",filter:"blur(8px)"},{opacity:1,transform:"none",filter:"blur(0)"}],{duration:600,delay:300,easing:"cubic-bezier(.22,1,.36,1)",fill:"backwards"});
     toast("착장에서 6벌을 빼서 코디 보드를 만들었어요. 데모는 미리 뺀 결과를 씁니다.")}}
 async function outfitToBoard(img){if(needKey())return;const dz=document.querySelector('[data-src="outfit"]');
-  dz.insertAdjacentHTML("afterend",`<div class="tile wide busy" id="pendingBoard"><span class="ph"><img class="cover" src="${imgToDataURL(img,600)}" alt=""><span class="scan"></span></span><span class="cap">옷을 빼는 중<small>착장 분석 · 플랫레이 생성</small></span></div>`);
+  dz.insertAdjacentHTML("afterend",`<div class="tile wide busy" id="pendingBoard"><span class="ph"><img class="cover" src="${imgToDataURL(img,600)}" alt=""><span class="scan"></span></span><span class="cap">옷을 빼는 중<small>입은 옷 찾는 중</small></span></div>`);
   const pend=$("pendingBoard");if(!reduce)pend.animate([{opacity:0,transform:"scale(.92)"},{opacity:1,transform:"none"}],{duration:420,easing:"cubic-bezier(.22,1,.36,1)"});
-  try{const items=await extract(img);if(!items.length)throw new Error("옷을 찾지 못했어요. 전신이 잘 보이는 사진으로 다시 시도해 주세요.");
-    const bd=await composeBoard(items);S.boards.splice(1,0,bd);renderShelf();renderBoards();
-    const tile=document.querySelector(`[data-board="${bd.id}"]`);if(!reduce)await tile.animate([{opacity:0,transform:"scale(.9)",filter:"blur(8px)"},{opacity:1,transform:"none",filter:"blur(0)"}],{duration:520,easing:"cubic-bezier(.22,1,.36,1)"}).finished;
-    addBoardSet(tile);toast(`${items.length}벌을 빼서 코디 보드를 만들었어요.`)}
+  const cap=t=>{const p=$("pendingBoard");if(p)p.querySelector(".cap small").textContent=t};
+  try{const items=await extract(img,(g,i,n)=>{cap(`${i}/${n}벌 뺐어요`);renderShelf();const p=$("pendingBoard");addToBoard(g.id,p?p.querySelector("img").getBoundingClientRect():board.getBoundingClientRect())},
+      n=>cap(`${n}벌 찾음 · 한 벌씩 생성 중`));
+    const bd=await composeBoard(items);S.boards.splice(S.boards.some(b=>b.id==="sample")?1:0,0,bd);renderBoards();
+    const tile=document.querySelector(`[data-board="${bd.id}"]`);if(tile&&!reduce)tile.animate([{opacity:0,transform:"scale(.9)",filter:"blur(8px)"},{opacity:1,transform:"none",filter:"blur(0)"}],{duration:520,easing:"cubic-bezier(.22,1,.36,1)"});
+    toast(`${items.length}벌을 한 벌씩 빼서 코디 보드를 만들었어요.`)}
   catch(e){toast(e.message,6000)}finally{const p=$("pendingBoard");if(p)p.remove()}}
 async function busy(btn,label,fn){const o=btn.innerHTML;btn.innerHTML=`<span class="spin"></span>${label}`;btn.disabled=true;try{await fn()}catch(e){toast(e.message,6000)}finally{btn.innerHTML=o;btn.disabled=false}}
 $("cutGemini").onclick=()=>{if(!S.person){$("pfile").click();return}if(needKey())return;busy($("cutGemini"),"누끼 따는 중",async()=>{
