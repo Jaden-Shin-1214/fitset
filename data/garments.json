@@ -1,0 +1,116 @@
+[
+ {
+  "id": "zip-knit",
+  "category": "outer",
+  "name": "울 집업 니트 블루종",
+  "en": "wool zip-up knit blouson",
+  "src": "assets/garments/zip-knit.png",
+  "w": 934,
+  "h": 892,
+  "color": "#98b2c9",
+  "origin": {
+   "board": "sample-board",
+   "box": [
+    8,
+    28,
+    476,
+    474
+   ]
+  }
+ },
+ {
+  "id": "white-tee",
+  "category": "top",
+  "name": "화이트 크루넥 티셔츠",
+  "en": "white crew-neck t-shirt",
+  "src": "assets/garments/white-tee.png",
+  "w": 730,
+  "h": 728,
+  "color": "#e1e6f1",
+  "origin": {
+   "board": "sample-board",
+   "box": [
+    430,
+    60,
+    795,
+    424
+   ]
+  }
+ },
+ {
+  "id": "jacquard-denim",
+  "category": "bottom",
+  "name": "자카드 와이드 데님",
+  "en": "jacquard wide-leg denim",
+  "src": "assets/garments/jacquard-denim.png",
+  "w": 576,
+  "h": 1268,
+  "color": "#7c8a9a",
+  "origin": {
+   "board": "sample-board",
+   "box": [
+    782,
+    50,
+    1070,
+    702
+   ]
+  }
+ },
+ {
+  "id": "fur-cap",
+  "category": "hat",
+  "name": "브라운 퍼 캡",
+  "en": "brown fur cap",
+  "src": "assets/garments/fur-cap.png",
+  "w": 478,
+  "h": 328,
+  "color": "#17100e",
+  "origin": {
+   "board": "sample-board",
+   "box": [
+    50,
+    518,
+    292,
+    696
+   ]
+  }
+ },
+ {
+  "id": "sun-belt",
+  "category": "acc",
+  "name": "썬 버클 레더 벨트",
+  "en": "sun-buckle leather belt",
+  "src": "assets/garments/sun-belt.png",
+  "w": 444,
+  "h": 488,
+  "color": "#503a34",
+  "origin": {
+   "board": "sample-board",
+   "box": [
+    318,
+    450,
+    540,
+    694
+   ]
+  }
+ },
+ {
+  "id": "derby",
+  "category": "shoes",
+  "name": "블랙 더비 슈즈",
+  "en": "black derby shoes",
+  "src": "assets/garments/derby.png",
+  "w": 480,
+  "h": 376,
+  "color": "#2e2b2b",
+  "origin": {
+   "board": "sample-board",
+   "box": [
+    520,
+    494,
+    766,
+    686
+   ]
+  }
+ }
+]
