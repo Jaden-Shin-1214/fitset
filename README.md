@@ -13,7 +13,7 @@
 ## AI 연결 (Gemini 또는 OpenAI)
 오른쪽 위 "AI 연결"에서 서비스를 고르고 API 키를 넣으면 브라우저에서 해당 API로 직접 요청합니다. 키는 그 브라우저의 localStorage에만 저장됩니다. 공개 저장소에 키를 커밋하지 마세요.
 - **Gemini**: 이미지 `gemini-2.5-flash-image`, 분석 `gemini-2.5-flash` (`generativelanguage.googleapis.com`). 이미지 생성 모델은 무료 등급 한도가 0일 수 있어 결제 연결이 필요합니다.
-- **OpenAI**: 이미지 `gpt-image-1` (`/v1/images/edits`, 여러 참조 이미지 + 투명 배경), 분석 `gpt-4.1-mini` (`/v1/chat/completions`).
+- **OpenAI**: 이미지 모델은 목록에서 선택 (기본 `gpt-image-2.5-flare`, 최고 품질 `gpt-image-2.5-sunburst`, `gpt-image-2` 등, `/v1/images/edits`). 분석 모델은 `gpt-6-luna` / `gpt-6.1-sol` / `gpt-6-astra` (`/v1/chat/completions`). 목록에 없는 모델은 "직접 입력"으로 넣을 수 있습니다. 투명 배경을 지원하지 않는 모델이면 초록 배경으로 받아 브라우저에서 지웁니다.
 - 모델 이름은 같은 창에서 바꿀 수 있습니다.
 
 ## 파일

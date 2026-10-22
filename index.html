@@ -223,6 +223,9 @@ pre{margin:10px 0 0;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;b
 .catgrid button:hover{background:var(--fill);transform:scale(1.03)}
 .catgrid button.wide{grid-column:1/-1;background:color-mix(in srgb,var(--accent) 12%,var(--bg));color:var(--accent)}
 .fields{display:flex;flex-direction:column;gap:12px}
+.field select{font:inherit;font-size:15px;color:var(--ink);background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238e8e93' stroke-width='1.6'/%3E%3C/svg%3E") right 12px center/12px no-repeat;border:1px solid var(--hair);border-radius:10px;padding:10px 34px 10px 12px;width:100%;-webkit-appearance:none;appearance:none}
+.fields input.custom{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--hair);border-radius:10px;padding:10px 12px;margin-top:-6px}
+.fields input.custom[hidden]{display:none}
 .fields[hidden]{display:none!important}
 .mrow{display:flex;justify-content:flex-end;gap:10px;align-items:center}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:70;transform:translateX(-50%);background:color-mix(in srgb,var(--ink) 90%,transparent);color:var(--bg);backdrop-filter:blur(12px);padding:11px 18px;border-radius:20px;font-size:14px;max-width:calc(100vw - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25);animation:toast .5s var(--ease)}
@@ -336,8 +339,21 @@ pre{margin:10px 0 0;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;b
   </div>
   <div class="fields" id="pOA" hidden>
     <label class="field" for="oKey">OpenAI API 키<input id="oKey" type="password" autocomplete="off" placeholder="sk-…"></label>
-    <label class="field" for="oImg">이미지 모델<input id="oImg" type="text" value="gpt-image-1"></label>
-    <label class="field" for="oTxt">분석 모델<input id="oTxt" type="text" value="gpt-4.1-mini"></label>
+    <label class="field" for="oImgSel">이미지 모델<select id="oImgSel">
+      <option value="gpt-image-2.5-sunburst">GPT Image 2.5 Sunburst · 최고 품질 (2026.09)</option>
+      <option value="gpt-image-2.5-flare">GPT Image 2.5 Flare · 빠름 (2026.09)</option>
+      <option value="gpt-image-2">GPT Image 2 (2026.04)</option>
+      <option value="gpt-image-1.5">GPT Image 1.5 · 12/1 종료 예정</option>
+      <option value="gpt-image-1-mini">GPT Image 1 mini · 12/1 종료 예정</option>
+      <option value="gpt-image-1">GPT Image 1 · 10/23 종료 예정</option>
+      <option value="custom">직접 입력…</option></select></label>
+    <input id="oImg" class="custom" type="text" placeholder="모델 ID" aria-label="이미지 모델 ID 직접 입력" hidden>
+    <label class="field" for="oTxtSel">분석 모델 · 착장 속 옷 찾기<select id="oTxtSel">
+      <option value="gpt-6-luna">GPT-6 Luna · 빠르고 저렴</option>
+      <option value="gpt-6.1-sol">GPT-6.1 Sol · 균형</option>
+      <option value="gpt-6-astra">GPT-6 Astra · 최고 성능</option>
+      <option value="custom">직접 입력…</option></select></label>
+    <input id="oTxt" class="custom" type="text" placeholder="모델 ID" aria-label="분석 모델 ID 직접 입력" hidden>
   </div>
   <p id="provNote">이미지 생성 모델은 무료 등급 한도가 없을 수 있어요. 결제가 연결된 키를 쓰세요.</p>
   <div class="mrow"><button class="ghost" type="button" id="kClose">닫기</button><button class="cta" type="button" id="kSave">저장</button></div>
@@ -367,8 +383,8 @@ const WEAR0 = {top:"빼 입기",outer:"열어 입기"};
 
 const S = {step:0, lib:GARMENTS.slice(), board:{}, tune:{}, open:null, person:null, cut:null, cutMode:"", pv:"src",
   key:"", imgModel:"gemini-2.5-flash-image", txtModel:"gemini-2.5-flash"};
-Object.assign(S,{prov:"gemini",oaKey:"",oaImg:"gpt-image-1",oaTxt:"gpt-4.1-mini"});
-try{const k=JSON.parse(localStorage.getItem("fitset.key")||"null");if(k){S.key=k.key||"";S.imgModel=k.img||S.imgModel;S.txtModel=k.txt||S.txtModel;S.prov=k.prov||"gemini";S.oaKey=k.oaKey||"";S.oaImg=k.oaImg||S.oaImg;S.oaTxt=k.oaTxt||S.oaTxt}}catch(_){}
+Object.assign(S,{prov:"gemini",oaKey:"",oaImg:"gpt-image-2.5-flare",oaTxt:"gpt-6-luna"});
+try{const k=JSON.parse(localStorage.getItem("fitset.key")||"null");if(k){S.key=k.key||"";S.imgModel=k.img||S.imgModel;S.txtModel=k.txt||S.txtModel;S.prov=k.prov||"gemini";S.oaKey=k.oaKey||"";S.oaImg=k.oaImg||S.oaImg;S.oaTxt=k.oaTxt||S.oaTxt;if(S.oaImg==="gpt-image-1")S.oaImg="gpt-image-2.5-flare";if(S.oaTxt==="gpt-4.1-mini")S.oaTxt="gpt-6-luna"}}catch(_){}
 // 샘플 착장 사진과, 그 사진 속 각 옷의 대략적 위치 (데모용으로 미리 뺀 결과)
 const SAMPLE_OUTFIT={src:"assets/sample-outfit.jpg",w:331,h:491,boxes:{"fur-cap":[130,14,202,64],"zip-knit":[78,84,254,252],"white-tee":[146,96,192,252],"sun-belt":[118,86,192,156],"jacquard-denim":[98,250,216,462],"derby":[138,448,218,490]}};
 const sampleBoardObj=()=>({id:"sample",name:SAMPLE_BOARD.name,src:SAMPLE_BOARD.src,w:SAMPLE_BOARD.w,h:SAMPLE_BOARD.h,items:GARMENTS.map(g=>({id:g.id,box:g.origin.box}))});
@@ -641,7 +657,12 @@ async function genImage(prompt,imgs,{size="1024x1536",transparent=false}={}){
   if(S.prov!=="openai")return gemini(S.imgModel,[{text:prompt},...imgs.map(part)],true);
   const make=hi=>{const fd=new FormData();fd.append("model",S.oaImg);fd.append("prompt",prompt);imgs.forEach((u,i)=>fd.append("image[]",dataURLtoBlob(u),`ref${i}.png`));
     fd.append("size",size);if(transparent)fd.append("background","transparent");if(hi)fd.append("input_fidelity","high");return fd};
-  let j;try{j=await openai("images/edits",{body:make(/^gpt-image-1$/.test(S.oaImg))})}catch(e){if(/input_fidelity/i.test(e.message))j=await openai("images/edits",{body:make(false)});else throw e}
+  let j,hi=/^gpt-image-1(\.5)?$/.test(S.oaImg);
+  for(let tries=0;;tries++){try{j=await openai("images/edits",{body:make(hi)});break}catch(e){
+    if(tries<2&&hi&&/input_fidelity/i.test(e.message)){hi=false;continue}
+    // 투명 배경을 못 쓰는 모델이면 초록 배경으로 받아 크로마키로 지운다
+    if(tries<2&&transparent&&/background|transparent/i.test(e.message)){transparent=false;prompt+=" Use a solid pure green #00FF00 background.";continue}
+    throw e}}
   const d=(j.data||[])[0];if(!d||!d.b64_json)throw new Error("이미지가 오지 않았어요. 이미지 모델 이름을 확인해 주세요.");return"data:image/png;base64,"+d.b64_json}
 async function analyze(prompt,imgs){if(S.prov!=="openai")return gemini(S.txtModel,[{text:prompt},...imgs.map(part)],false);
   const j=await openai("chat/completions",{headers:{"Content-Type":"application/json"},body:JSON.stringify({model:S.oaTxt,response_format:{type:"json_object"},
@@ -703,14 +724,17 @@ $("tryGemini").onclick=()=>{if(!S.person){toast("먼저 사람 사진을 넣어 
   // 색은 화면 미리보기용으로만 칠하고, 모델에는 원본 옷 이미지 + 목표색 지시만 보낸다
   const imgs=[imgToDataURL(S.person)];for(const g of boardItems())imgs.push(imgToDataURL(await loadImg(g.src),768));
   const u=await genImage(compile(),imgs,{size:"1024x1536"});$("result").innerHTML=`<img alt="입혀본 결과" src="${u}">`;if(!reduce)$("result").firstChild.classList.add("reveal")})};
+function setSel(id,v){const sel=$(id+"Sel"),has=[...sel.options].some(o=>o.value===v&&v!=="custom");sel.value=has?v:"custom";$(id).hidden=has;$(id).value=has?"":v}
+function getSel(id){const v=$(id+"Sel").value;return v==="custom"?$(id).value.trim():v}
+["oImg","oTxt"].forEach(id=>$(id+"Sel").addEventListener("change",e=>{const c=e.target.value==="custom";$(id).hidden=!c;if(c)$(id).focus()}));
 function keyLabel(){$("keyBtn").textContent=curKey()?`${provName()} 연결됨`:"AI 연결"}
 function setProv(v){$("provSeg").dataset.v=v;$("provSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.prov===v));$("pGem").hidden=v!=="gemini";$("pOA").hidden=v!=="openai";placeThumbs($("keyScrim"))}
-function openKey(){$("kKey").value=S.key;$("kImg").value=S.imgModel;$("kTxt").value=S.txtModel;$("oKey").value=S.oaKey;$("oImg").value=S.oaImg;$("oTxt").value=S.oaTxt;
+function openKey(){$("kKey").value=S.key;$("kImg").value=S.imgModel;$("kTxt").value=S.txtModel;$("oKey").value=S.oaKey;setSel("oImg",S.oaImg);setSel("oTxt",S.oaTxt);
   $("keyScrim").hidden=false;setProv(S.prov);requestAnimationFrame(()=>placeThumbs($("keyScrim")));(S.prov==="openai"?$("oKey"):$("kKey")).focus()}
 $("provSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setProv(b.dataset.prov)});
 $("keyBtn").onclick=openKey;$("kClose").onclick=()=>$("keyScrim").hidden=true;
 $("kSave").onclick=()=>{S.prov=$("provSeg").dataset.v||"gemini";S.key=$("kKey").value.trim();S.imgModel=$("kImg").value.trim()||S.imgModel;S.txtModel=$("kTxt").value.trim()||S.txtModel;
-  S.oaKey=$("oKey").value.trim();S.oaImg=$("oImg").value.trim()||S.oaImg;S.oaTxt=$("oTxt").value.trim()||S.oaTxt;
+  S.oaKey=$("oKey").value.trim();S.oaImg=getSel("oImg")||S.oaImg;S.oaTxt=getSel("oTxt")||S.oaTxt;
   try{localStorage.setItem("fitset.key",JSON.stringify({prov:S.prov,key:S.key,img:S.imgModel,txt:S.txtModel,oaKey:S.oaKey,oaImg:S.oaImg,oaTxt:S.oaTxt}))}catch(_){}
   $("keyScrim").hidden=true;keyLabel();toast(curKey()?`${provName()}로 연결했어요.`:"키가 비어 있어요.")};
 document.querySelectorAll(".scrim").forEach(s=>s.addEventListener("click",e=>{if(e.target===s){s.hidden=true;pending=null}}));
