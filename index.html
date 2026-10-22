@@ -222,6 +222,8 @@ pre{margin:10px 0 0;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;b
 .catgrid button{background:var(--bg);border-radius:12px;padding:12px 6px;font-size:14px;font-weight:500;transition:background .2s,transform .2s var(--ease)}
 .catgrid button:hover{background:var(--fill);transform:scale(1.03)}
 .catgrid button.wide{grid-column:1/-1;background:color-mix(in srgb,var(--accent) 12%,var(--bg));color:var(--accent)}
+.fields{display:flex;flex-direction:column;gap:12px}
+.fields[hidden]{display:none!important}
 .mrow{display:flex;justify-content:flex-end;gap:10px;align-items:center}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:70;transform:translateX(-50%);background:color-mix(in srgb,var(--ink) 90%,transparent);color:var(--bg);backdrop-filter:blur(12px);padding:11px 18px;border-radius:20px;font-size:14px;max-width:calc(100vw - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25);animation:toast .5s var(--ease)}
 .toast[hidden]{display:none!important}
@@ -241,7 +243,7 @@ pre{margin:10px 0 0;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;b
       <button type="button" data-step="1"><span>2</span><b>조정</b></button>
       <button type="button" data-step="2"><span>3</span><b>입혀보기</b></button>
     </div>
-    <button class="keybtn" type="button" id="keyBtn">Gemini 연결</button>
+    <button class="keybtn" type="button" id="keyBtn">AI 연결</button>
   </div>
 </nav>
 
@@ -301,16 +303,16 @@ pre{margin:10px 0 0;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;b
           <label class="range" for="tol">배경 허용치<input type="range" id="tol" min="8" max="90" value="38"></label>
           <div style="display:flex;gap:8px;align-items:center">
             <button class="ghost" type="button" id="cutLocal" style="padding:8px 4px">단색 배경 지우기</button>
-            <button class="cta" type="button" id="cutGemini" style="padding:9px 18px">Gemini로 누끼</button>
+            <button class="cta" type="button" id="cutGemini" style="padding:9px 18px">AI로 누끼</button>
           </div>
         </div>
-        <p class="hint" id="pHint">단색 배경 지우기는 브라우저 안에서 바로 돌아가는 근사 방식입니다. 배경이 복잡하면 Gemini로 누끼를 쓰세요.</p>
+        <p class="hint" id="pHint">단색 배경 지우기는 브라우저 안에서 바로 돌아가는 근사 방식입니다. 배경이 복잡하면 AI로 누끼를 쓰세요.</p>
       </div>
       <div class="panel">
         <h2>입힐 세트</h2>
         <ul class="sum" id="sum"></ul>
-        <details><summary>Gemini에 보낼 지시문 보기</summary><pre id="prompt"></pre></details>
-        <button class="cta" type="button" id="tryGemini">Gemini로 입혀보기</button>
+        <details><summary>AI에 보낼 지시문 보기</summary><pre id="prompt"></pre></details>
+        <button class="cta" type="button" id="tryGemini">AI로 입혀보기</button>
         <div class="result" id="result">결과가 여기에 나타납니다.</div>
       </div>
     </div>
@@ -318,17 +320,26 @@ pre{margin:10px 0 0;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;b
 </main>
 
 <div class="scrim" id="catScrim" hidden><div class="modal" role="dialog" aria-labelledby="catTitle">
-  <h3 id="catTitle">어떤 사진인가요?</h3><p>옷 사진이면 종류를 고르세요. 착샷이면 Gemini가 옷을 골라냅니다.</p>
+  <h3 id="catTitle">어떤 사진인가요?</h3><p>옷 사진이면 종류를 고르세요. 착장 사진이면 AI가 옷을 전부 빼서 코디 보드로 만듭니다.</p>
   <div class="catgrid" id="catGrid"></div>
   <div class="mrow"><button class="ghost" type="button" id="catCancel">취소</button></div>
 </div></div>
 
 <div class="scrim" id="keyScrim" hidden><div class="modal" role="dialog" aria-labelledby="keyTitle">
-  <h3 id="keyTitle">Gemini 연결</h3>
-  <p>키는 이 브라우저에만 저장되고, 요청은 Google API로만 직접 보냅니다. 착샷 분리, 누끼, 입혀보기에 쓰여요.</p>
-  <label class="field" for="kKey">API 키<input id="kKey" type="password" autocomplete="off" placeholder="AIza…"></label>
-  <label class="field" for="kImg">이미지 모델<input id="kImg" type="text" value="gemini-2.5-flash-image"></label>
-  <label class="field" for="kTxt">분석 모델<input id="kTxt" type="text" value="gemini-2.5-flash"></label>
+  <h3 id="keyTitle">AI 연결</h3>
+  <p>키는 이 브라우저에만 저장되고, 요청은 고른 서비스의 API로만 직접 보냅니다. 착장 분리, 누끼, 입혀보기에 쓰여요.</p>
+  <div class="seg" id="provSeg" role="group" aria-label="서비스"><div class="thumb"></div><button type="button" data-prov="gemini" aria-pressed="true">Gemini</button><button type="button" data-prov="openai" aria-pressed="false">OpenAI · gpt-image</button></div>
+  <div class="fields" id="pGem">
+    <label class="field" for="kKey">Gemini API 키<input id="kKey" type="password" autocomplete="off" placeholder="AIza…"></label>
+    <label class="field" for="kImg">이미지 모델<input id="kImg" type="text" value="gemini-2.5-flash-image"></label>
+    <label class="field" for="kTxt">분석 모델<input id="kTxt" type="text" value="gemini-2.5-flash"></label>
+  </div>
+  <div class="fields" id="pOA" hidden>
+    <label class="field" for="oKey">OpenAI API 키<input id="oKey" type="password" autocomplete="off" placeholder="sk-…"></label>
+    <label class="field" for="oImg">이미지 모델<input id="oImg" type="text" value="gpt-image-1"></label>
+    <label class="field" for="oTxt">분석 모델<input id="oTxt" type="text" value="gpt-4.1-mini"></label>
+  </div>
+  <p id="provNote">이미지 생성 모델은 무료 등급 한도가 없을 수 있어요. 결제가 연결된 키를 쓰세요.</p>
   <div class="mrow"><button class="ghost" type="button" id="kClose">닫기</button><button class="cta" type="button" id="kSave">저장</button></div>
 </div></div>
 
@@ -356,7 +367,8 @@ const WEAR0 = {top:"빼 입기",outer:"열어 입기"};
 
 const S = {step:0, lib:GARMENTS.slice(), board:{}, tune:{}, open:null, person:null, cut:null, cutMode:"", pv:"src",
   key:"", imgModel:"gemini-2.5-flash-image", txtModel:"gemini-2.5-flash"};
-try{const k=JSON.parse(localStorage.getItem("fitset.key")||"null");if(k){S.key=k.key||"";S.imgModel=k.img||S.imgModel;S.txtModel=k.txt||S.txtModel}}catch(_){}
+Object.assign(S,{prov:"gemini",oaKey:"",oaImg:"gpt-image-1",oaTxt:"gpt-4.1-mini"});
+try{const k=JSON.parse(localStorage.getItem("fitset.key")||"null");if(k){S.key=k.key||"";S.imgModel=k.img||S.imgModel;S.txtModel=k.txt||S.txtModel;S.prov=k.prov||"gemini";S.oaKey=k.oaKey||"";S.oaImg=k.oaImg||S.oaImg;S.oaTxt=k.oaTxt||S.oaTxt}}catch(_){}
 // 샘플 착장 사진과, 그 사진 속 각 옷의 대략적 위치 (데모용으로 미리 뺀 결과)
 const SAMPLE_OUTFIT={src:"assets/sample-outfit.jpg",w:331,h:491,boxes:{"fur-cap":[130,14,202,64],"zip-knit":[78,84,254,252],"white-tee":[146,96,192,252],"sun-belt":[118,86,192,156],"jacquard-denim":[98,250,216,462],"derby":[138,448,218,490]}};
 const sampleBoardObj=()=>({id:"sample",name:SAMPLE_BOARD.name,src:SAMPLE_BOARD.src,w:SAMPLE_BOARD.w,h:SAMPLE_BOARD.h,items:GARMENTS.map(g=>({id:g.id,box:g.origin.box}))});
@@ -474,7 +486,7 @@ function renderShelf(){const cats=shelfCats(),cnt=k=>S.lib.filter(g=>g.category=
   $("shelf").innerHTML=grid||`<p class="none">아직 없어요. 사진을 추가하거나 착장에서 빼 오세요.</p>`;renderShelfState()}
 $("closetChips").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.cc=b.dataset.cc;renderShelf();$("shelf").scrollTop=0;
   if(!reduce)[...$("shelf").children].forEach((c,i)=>c.animate([{opacity:0,transform:"translateY(8px)"},{opacity:1,transform:"none"}],{duration:360,delay:Math.min(i,12)*18,easing:"cubic-bezier(.22,1,.36,1)",fill:"backwards"}))});
-function renderBoards(){$("boards").innerHTML=`<div class="tile wide dz" data-src="outfit" tabindex="0" role="button" aria-label="착장 사진으로 코디 보드 만들기"><span class="ph"><svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="8" width="22" height="16" rx="3"/><circle cx="15" cy="16" r="4.5"/><path d="M11 8l1.5-3h5L19 8"/></svg><b>착장 사진 넣기</b>옷을 전부 빼서 보드로 만들어요</span><span class="cap">새 코디 보드<small>끌어오거나 눌러서 고르기 · Gemini 사용</small></span></div>`+
+function renderBoards(){$("boards").innerHTML=`<div class="tile wide dz" data-src="outfit" tabindex="0" role="button" aria-label="착장 사진으로 코디 보드 만들기"><span class="ph"><svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="8" width="22" height="16" rx="3"/><circle cx="15" cy="16" r="4.5"/><path d="M11 8l1.5-3h5L19 8"/></svg><b>착장 사진 넣기</b>옷을 전부 빼서 보드로 만들어요</span><span class="cap">새 코디 보드<small>끌어오거나 눌러서 고르기 · AI 사용</small></span></div>`+
   `<button type="button" class="tile portrait" data-outfit="sample"><span class="ph"><img class="cover" src="${SAMPLE_OUTFIT.src}" alt="샘플 착장 사진"></span><span class="cap">샘플 착장<small>${S.boards.some(b=>b.id==="sample")?"다시 넣기":"눌러서 옷 빼기"}</small></span></button>`+
   S.boards.map(b=>`<button type="button" class="tile wide" data-board="${b.id}"><span class="ph"><img class="cover" src="${b.src}" alt=""></span><span class="cap">${b.name}<small>세트 이미지 · ${b.items.length}벌</small></span></button>`).join("")}
 function renderShelfState(){const on=S.set;document.querySelectorAll(".tile[data-g]").forEach(t=>t.classList.toggle("on",on.includes(t.dataset.g)))}
@@ -607,7 +619,9 @@ $("cutLocal").onclick=()=>{if(!S.person){$("pfile").click();return}S.cut=floodCu
 $("tol").addEventListener("change",()=>{if(S.person&&S.cutMode==="local"){S.cut=floodCut(S.person,+$("tol").value);setPV(S.pv==="src"?"rgba":S.pv)}});
 
 /* Gemini */
-function needKey(){if(S.key)return false;openKey();toast("Gemini 키를 먼저 연결해 주세요.");return true}
+const provName=()=>S.prov==="openai"?"OpenAI":"Gemini";
+const curKey=()=>S.prov==="openai"?S.oaKey:S.key;
+function needKey(){if(curKey())return false;openKey();toast(`${provName()} 키를 먼저 연결해 주세요.`);return true}
 function imgToDataURL(img,max=1024){const W0=img.naturalWidth||img.width,H0=img.naturalHeight||img.height,s=Math.min(1,max/Math.max(W0,H0)),c=canvasOf(W0*s,H0*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);return c.toDataURL("image/png")}
 const part=u=>({inline_data:{mime_type:u.slice(5,u.indexOf(";")),data:u.split(",")[1]}});
 async function gemini(model,parts,image){let r;
@@ -618,14 +632,43 @@ async function gemini(model,parts,image){let r;
   const ps=(((j.candidates||[])[0]||{}).content||{}).parts||[];
   if(image){const p=ps.find(p=>p.inlineData||p.inline_data);if(!p)throw new Error("이미지가 오지 않았어요. 이미지 모델 이름을 확인해 주세요.");const d=p.inlineData||p.inline_data;return`data:${d.mimeType||d.mime_type};base64,${d.data}`}
   return ps.map(p=>p.text||"").join("")}
-// 착장 사진 → (1) Gemini 이미지 모델로 단색 배경 플랫레이 생성 → (2) 분석 모델로 옷별 상자·종류 → (3) 크로마키로 누끼
-async function extract(img){
-  const flat=await gemini(S.imgModel,[{text:"Create a flat-lay product photo of every clothing item and accessory the person wears (outerwear, top, bottom, shoes, hat, belt or bag). Lay each item flat, front view, fully visible, well separated and not overlapping, on a solid pure green #00FF00 background. No person, no mannequin, no shadows, no text."},part(imgToDataURL(img))],true);
-  const fim=await loadImg(flat),txt=await gemini(S.txtModel,[{text:'Detect each garment or accessory in this flat-lay. Return only a JSON array of {"label": short English name, "name_ko": short Korean product name, "category": one of "outer","top","bottom","dress","shoes","hat","bag","acc","jewelry", or another short lowercase English noun such as "ring" or "scarf" if none fits, "box_2d": [ymin, xmin, ymax, xmax] normalized to 0-1000}.'},part(flat)],false);
-  const boxes=JSON.parse(txt.replace(/^\s*```(json)?/,"").replace(/```\s*$/,"").trim()),W=fim.naturalWidth,H=fim.naturalHeight,keyed=chromaKey(fim),out=[];
-  boxes.forEach((b,i)=>{if(!b.box_2d)return;b.category=ensureCat(b.category);const[y0,x0,y1,x1]=b.box_2d.map((v,k)=>v/1000*(k%2?W:H)),c=canvasOf(x1-x0,y1-y0);
-    c.getContext("2d").drawImage(keyed,x0,y0,c.width,c.height,0,0,c.width,c.height);const t=trim(c);
-    const g={id:"t"+Date.now().toString(36)+i,category:b.category,name:String(b.name_ko||b.label).slice(0,20),en:String(b.label),src:t.toDataURL("image/png"),w:t.width,h:t.height,color:dominant(t),user:true};
+function dataURLtoBlob(u){const b=atob(u.split(",")[1]),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return new Blob([a],{type:u.slice(5,u.indexOf(";"))})}
+async function openai(path,init){let r;try{r=await fetch("https://api.openai.com/v1/"+path,{method:"POST",...init,headers:{Authorization:`Bearer ${S.oaKey}`,...(init.headers||{})}})}
+  catch(_){throw new Error("OpenAI API에 연결하지 못했어요. 미리보기 환경은 외부 요청을 막습니다. GitHub Pages에 올린 페이지에서 시도해 주세요.")}
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error((j.error&&j.error.message)||`요청 실패 (${r.status})`);return j}
+// 이미지 생성: Gemini는 단색 초록 배경 + 크로마키, gpt-image는 투명 배경을 직접 받는다
+async function genImage(prompt,imgs,{size="1024x1536",transparent=false}={}){
+  if(S.prov!=="openai")return gemini(S.imgModel,[{text:prompt},...imgs.map(part)],true);
+  const make=hi=>{const fd=new FormData();fd.append("model",S.oaImg);fd.append("prompt",prompt);imgs.forEach((u,i)=>fd.append("image[]",dataURLtoBlob(u),`ref${i}.png`));
+    fd.append("size",size);if(transparent)fd.append("background","transparent");if(hi)fd.append("input_fidelity","high");return fd};
+  let j;try{j=await openai("images/edits",{body:make(/^gpt-image-1$/.test(S.oaImg))})}catch(e){if(/input_fidelity/i.test(e.message))j=await openai("images/edits",{body:make(false)});else throw e}
+  const d=(j.data||[])[0];if(!d||!d.b64_json)throw new Error("이미지가 오지 않았어요. 이미지 모델 이름을 확인해 주세요.");return"data:image/png;base64,"+d.b64_json}
+async function analyze(prompt,imgs){if(S.prov!=="openai")return gemini(S.txtModel,[{text:prompt},...imgs.map(part)],false);
+  const j=await openai("chat/completions",{headers:{"Content-Type":"application/json"},body:JSON.stringify({model:S.oaTxt,response_format:{type:"json_object"},
+    messages:[{role:"user",content:[{type:"text",text:prompt},...imgs.map(u=>({type:"image_url",image_url:{url:u,detail:"high"}}))]}]})});
+  return((j.choices||[])[0]||{}).message?.content||"{}"}
+// 투명 영역으로 나뉜 덩어리(연결 성분)를 찾아, 모델이 준 상자와 묶어 옷 하나씩 깔끔하게 오려낸다
+function components(c){const s=Math.min(1,400/Math.max(c.width,c.height)),w=Math.max(1,Math.round(c.width*s)),h=Math.max(1,Math.round(c.height*s)),t=canvasOf(w,h),x=t.getContext("2d");
+  x.drawImage(c,0,0,w,h);const d=x.getImageData(0,0,w,h).data,lab=new Int32Array(w*h),q=new Int32Array(w*h),comps=[];let id=0;
+  for(let p0=0;p0<w*h;p0++){if(lab[p0]||d[p0*4+3]<64)continue;id++;let qh=0,qt=0,n=0,sx=0,sy=0,x0=w,y0=h,x1=0,y1=0;q[qt++]=p0;lab[p0]=id;
+    while(qh<qt){const p=q[qh++],px=p%w,py=(p-px)/w;n++;sx+=px;sy+=py;if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;
+      for(const nb of[px>0?p-1:-1,px<w-1?p+1:-1,py>0?p-w:-1,py<h-1?p+w:-1])if(nb>=0&&!lab[nb]&&d[nb*4+3]>=64){lab[nb]=id;q[qt++]=nb}}
+    if(n>w*h*.0015)comps.push({id,cx:sx/n/s,cy:sy/n/s,x0:x0/s,y0:y0/s,x1:(x1+1)/s,y1:(y1+1)/s})}
+  return{lab,w,h,s,comps}}
+// 착장 사진 → (1) 이미지 모델로 플랫레이 생성 → (2) 분석 모델로 옷별 상자·종류 → (3) 덩어리 단위로 누끼
+async function extract(img){const oa=S.prov==="openai";
+  const flat=await genImage(`Create a flat-lay product photo of every clothing item and accessory the person wears (outerwear, top, bottom, dress, shoes, hat, belt, bag, jewelry). Lay each item flat, front view, fully visible, well separated with generous empty space between items, never overlapping. ${oa?"Transparent background.":"Solid pure green #00FF00 background."} No person, no mannequin, no shadows, no text.`,[imgToDataURL(img)],{size:"1536x1024",transparent:true});
+  const fim=await loadImg(flat),keyed=chromaKey(fim),W=keyed.width,H=keyed.height,cc=components(keyed);
+  const txt=await analyze('Detect each garment or accessory in this flat-lay image. Return JSON {"items":[{"label": short English name, "name_ko": short Korean product name, "category": one of "outer","top","bottom","dress","shoes","hat","bag","acc","jewelry", or another short lowercase English noun such as "ring" or "scarf", "box_2d": [ymin, xmin, ymax, xmax] normalized to 0-1000}]}. A pair of shoes is one item.',[flat]);
+  const j=JSON.parse(String(txt).replace(/^\s*```(json)?/,"").replace(/```\s*$/,"").trim()),boxes=Array.isArray(j)?j:(j.items||[]),out=[],used=new Set();
+  boxes.forEach((b,i)=>{if(!b.box_2d)return;b.category=ensureCat(b.category);let[y0,x0,y1,x1]=b.box_2d.map((v,k)=>v/1000*(k%2?W:H));const mx=(x1-x0)*.05,my=(y1-y0)*.05;
+    const grp=cc.comps.filter(c=>!used.has(c.id)&&c.cx>x0-mx&&c.cx<x1+mx&&c.cy>y0-my&&c.cy<y1+my);
+    if(grp.length){grp.forEach(c=>used.add(c.id));x0=Math.min(...grp.map(c=>c.x0));y0=Math.min(...grp.map(c=>c.y0));x1=Math.max(...grp.map(c=>c.x1));y1=Math.max(...grp.map(c=>c.y1))}
+    x0=Math.max(0,x0-4);y0=Math.max(0,y0-4);x1=Math.min(W,x1+4);y1=Math.min(H,y1+4);const c=canvasOf(x1-x0,y1-y0),cx=c.getContext("2d");cx.drawImage(keyed,x0,y0,c.width,c.height,0,0,c.width,c.height);
+    if(grp.length){const ids=new Set(grp.map(g=>g.id)),id=cx.getImageData(0,0,c.width,c.height),d=id.data;
+      for(let yy=0;yy<c.height;yy++)for(let xx=0;xx<c.width;xx++){const lx=Math.min(cc.w-1,Math.floor((x0+xx)*cc.s)),ly=Math.min(cc.h-1,Math.floor((y0+yy)*cc.s)),l=cc.lab[ly*cc.w+lx];if(l&&!ids.has(l))d[(yy*c.width+xx)*4+3]=0}
+      cx.putImageData(id,0,0)}
+    const t=trim(c);const g={id:"t"+Date.now().toString(36)+i,category:b.category,name:String(b.name_ko||b.label).slice(0,20),en:String(b.label),src:t.toDataURL("image/png"),w:t.width,h:t.height,color:dominant(t),user:true};
     S.lib.push(g);out.push(g)});
   await Promise.all(out.map(g=>loadImg(g.src)));return out}
 // 빼 온 옷들을 샘플과 같은 배치의 코디 보드 이미지로 합성하고, 각 옷의 상자 좌표를 기록한다
@@ -654,19 +697,25 @@ async function outfitToBoard(img){if(needKey())return;const dz=document.querySel
   catch(e){toast(e.message,6000)}finally{const p=$("pendingBoard");if(p)p.remove()}}
 async function busy(btn,label,fn){const o=btn.innerHTML;btn.innerHTML=`<span class="spin"></span>${label}`;btn.disabled=true;try{await fn()}catch(e){toast(e.message,6000)}finally{btn.innerHTML=o;btn.disabled=false}}
 $("cutGemini").onclick=()=>{if(!S.person){$("pfile").click();return}if(needKey())return;busy($("cutGemini"),"누끼 따는 중",async()=>{
-  const u=await gemini(S.imgModel,[{text:"Return this exact photo with the background replaced by solid pure green #00FF00. Keep the person, hair edges and clothing unchanged. No other edits."},part(imgToDataURL(S.person))],true);
-  S.cut=chromaKey(await loadImg(u));S.cutMode="gemini";setPV("rgba");$("pHint").textContent="Gemini가 배경을 단색으로 바꾼 결과에서 사람만 남겼습니다."})};
+  const u=await genImage(S.prov==="openai"?"Remove the background completely so only the person remains. Keep the person, hair edges, clothing, pose and framing exactly as they are.":"Return this exact photo with the background replaced by solid pure green #00FF00. Keep the person, hair edges and clothing unchanged. No other edits.",[imgToDataURL(S.person)],{size:"1024x1536",transparent:true});
+  S.cut=chromaKey(await loadImg(u));S.cutMode="ai";setPV("rgba");$("pHint").textContent=`${provName()}로 배경을 지운 결과에서 사람만 남겼습니다.`})};
 $("tryGemini").onclick=()=>{if(!S.person){toast("먼저 사람 사진을 넣어 주세요.");return}if(needKey())return;busy($("tryGemini"),"입히는 중",async()=>{
-  const parts=[{text:compile()},part(imgToDataURL(S.person))];for(const g of boardItems())parts.push(part(imgToDataURL(await loadImg(g.src),768))); // 색은 화면 미리보기용으로만 칠하고, Gemini에는 원본 이미지 + 목표색 지시를 보낸다
-  const u=await gemini(S.imgModel,parts,true);$("result").innerHTML=`<img alt="입혀본 결과" src="${u}">`;if(!reduce)$("result").firstChild.classList.add("reveal")})};
-function openKey(){$("kKey").value=S.key;$("kImg").value=S.imgModel;$("kTxt").value=S.txtModel;$("keyScrim").hidden=false;$("kKey").focus()}
+  // 색은 화면 미리보기용으로만 칠하고, 모델에는 원본 옷 이미지 + 목표색 지시만 보낸다
+  const imgs=[imgToDataURL(S.person)];for(const g of boardItems())imgs.push(imgToDataURL(await loadImg(g.src),768));
+  const u=await genImage(compile(),imgs,{size:"1024x1536"});$("result").innerHTML=`<img alt="입혀본 결과" src="${u}">`;if(!reduce)$("result").firstChild.classList.add("reveal")})};
+function keyLabel(){$("keyBtn").textContent=curKey()?`${provName()} 연결됨`:"AI 연결"}
+function setProv(v){$("provSeg").dataset.v=v;$("provSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.prov===v));$("pGem").hidden=v!=="gemini";$("pOA").hidden=v!=="openai";placeThumbs($("keyScrim"))}
+function openKey(){$("kKey").value=S.key;$("kImg").value=S.imgModel;$("kTxt").value=S.txtModel;$("oKey").value=S.oaKey;$("oImg").value=S.oaImg;$("oTxt").value=S.oaTxt;
+  $("keyScrim").hidden=false;setProv(S.prov);requestAnimationFrame(()=>placeThumbs($("keyScrim")));(S.prov==="openai"?$("oKey"):$("kKey")).focus()}
+$("provSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setProv(b.dataset.prov)});
 $("keyBtn").onclick=openKey;$("kClose").onclick=()=>$("keyScrim").hidden=true;
-$("kSave").onclick=()=>{S.key=$("kKey").value.trim();S.imgModel=$("kImg").value.trim()||S.imgModel;S.txtModel=$("kTxt").value.trim()||S.txtModel;
-  try{localStorage.setItem("fitset.key",JSON.stringify({key:S.key,img:S.imgModel,txt:S.txtModel}))}catch(_){}
-  $("keyScrim").hidden=true;$("keyBtn").textContent=S.key?"Gemini 연결됨":"Gemini 연결";toast(S.key?"연결했어요.":"키를 지웠어요.")};
+$("kSave").onclick=()=>{S.prov=$("provSeg").dataset.v||"gemini";S.key=$("kKey").value.trim();S.imgModel=$("kImg").value.trim()||S.imgModel;S.txtModel=$("kTxt").value.trim()||S.txtModel;
+  S.oaKey=$("oKey").value.trim();S.oaImg=$("oImg").value.trim()||S.oaImg;S.oaTxt=$("oTxt").value.trim()||S.oaTxt;
+  try{localStorage.setItem("fitset.key",JSON.stringify({prov:S.prov,key:S.key,img:S.imgModel,txt:S.txtModel,oaKey:S.oaKey,oaImg:S.oaImg,oaTxt:S.oaTxt}))}catch(_){}
+  $("keyScrim").hidden=true;keyLabel();toast(curKey()?`${provName()}로 연결했어요.`:"키가 비어 있어요.")};
 document.querySelectorAll(".scrim").forEach(s=>s.addEventListener("click",e=>{if(e.target===s){s.hidden=true;pending=null}}));
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.querySelectorAll(".scrim").forEach(s=>s.hidden=true);pending=null}});
-$("keyBtn").textContent=S.key?"Gemini 연결됨":"Gemini 연결";
+keyLabel();
 
 /* steps */
 const HASH=["compose","tune","try"];

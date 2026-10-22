@@ -10,8 +10,11 @@
 ## 실행
 정적 파일만 사용합니다. 저장소 루트에 그대로 올리고 GitHub Pages(Settings → Pages → Deploy from branch)를 켜면 됩니다. 로컬 확인: `python3 -m http.server` 실행 후 `http://localhost:8000`
 
-## Gemini
-오른쪽 위 "Gemini 연결"에 API 키를 넣으면 브라우저에서 `generativelanguage.googleapis.com`으로 직접 요청합니다. 키는 해당 브라우저의 localStorage에만 저장됩니다. 기본 모델은 `gemini-2.5-flash-image`(이미지)와 `gemini-2.5-flash`(분석)이며, 같은 창에서 바꿀 수 있습니다. 공개 저장소에 키를 커밋하지 마세요.
+## AI 연결 (Gemini 또는 OpenAI)
+오른쪽 위 "AI 연결"에서 서비스를 고르고 API 키를 넣으면 브라우저에서 해당 API로 직접 요청합니다. 키는 그 브라우저의 localStorage에만 저장됩니다. 공개 저장소에 키를 커밋하지 마세요.
+- **Gemini**: 이미지 `gemini-2.5-flash-image`, 분석 `gemini-2.5-flash` (`generativelanguage.googleapis.com`). 이미지 생성 모델은 무료 등급 한도가 0일 수 있어 결제 연결이 필요합니다.
+- **OpenAI**: 이미지 `gpt-image-1` (`/v1/images/edits`, 여러 참조 이미지 + 투명 배경), 분석 `gpt-4.1-mini` (`/v1/chat/completions`).
+- 모델 이름은 같은 창에서 바꿀 수 있습니다.
 
 ## 파일
 - `index.html`: 앱 전체 (단일 파일)
@@ -21,6 +24,6 @@
 - `data/garments.json`: 옷 메타데이터 (`id, category, name, en, src, w, h, color, origin.box`)
 
 ## 알려진 한계
-- 착샷 분리, 누끼, 입혀보기의 Gemini 연동 코드는 실제 키로 아직 검증하지 않았습니다.
+- 착장 분리, 누끼, 입혀보기의 Gemini / OpenAI 연동 코드는 실제 키로 아직 끝까지 검증하지 않았습니다.
 - 단색 배경 지우기는 테두리 색 기반 근사라서 배경이 복잡하면 깨집니다.
 - 다시 칠하기는 옷 전체에 적용되므로 벨트 버클 같은 부속도 함께 색이 바뀝니다.
